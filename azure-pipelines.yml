@@ -29,21 +29,6 @@ stages:
       vmImage: $(vmImageName)
     steps:
     - task: Docker@2
-      inputs:
-        containerRegistry: 'idosheffer99'
-        repository: 'idosheffer99'
-        command: 'buildAndPush'
-        Dockerfile: $(dockerfilePath)
-        
-    - task: Docker@2
-      inputs:
-        containerRegistry: 'idosheffer99'
-        command: 'logout'
-    - task: Docker@2
-      inputs:
-        containerRegistry: 'idosheffer99'
-        command: 'login'
-    - task: Docker@2
       displayName: Build and push an image to container registry
       inputs:
         command: buildAndPush
