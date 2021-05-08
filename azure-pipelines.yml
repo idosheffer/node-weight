@@ -12,7 +12,7 @@ variables:
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: '92024f92-5b50-4ab1-b4ca-3ae597bb6fe3'
   imageRepository: 'idosheffernodeweight'
-  containerRegistry: 'idocontainer99.azurecr.io'
+  containerRegistry: 'idocontainer10.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
 
