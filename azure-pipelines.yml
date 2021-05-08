@@ -37,3 +37,27 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
+          
+- stage: Deploy
+  displayName: Deploy
+  pool:
+   vmImage: ubuntu-latest
+  jobs:           
+    - deployment: VMDeploy
+      displayName: web
+      pool:
+       vmImage: 'Ubuntu-16.04'
+      environment:
+       name:  Deploy
+       resourceType: VirtualMachine
+      strategy:
+       runOnce:
+        deploy:
+         steps:  
+         - task: Ansible@0
+           inputs:
+             ansibleInterface: 'agentMachine'
+             playbookPathOnAgentMachine: '/etc/ansible/myfirstplaybook.yml'
+             inventoriesAgentMachine: 'noInventory'
+             args: '--extra-vars "OKTAURL=$(OKTAURL) OKTAID=$(OKTAID) OKTASECRET=$(OKTASECRET) POSTGRESHOST=$(POSTGRESHOST) POSTGRESPASSWORD=$(POSTGRESPASSWORD) POSTGRESUSERNAME=$(POSTGRESUSERNAME)"'
+             failOnStdErr: false
