@@ -1,0 +1,214 @@
+---
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: create docker group
+      become: true
+      group:
+         name: docker
+         state: present
+
+    - name: add user to group
+      become: true
+      user:
+        name: "{{ansible_user}}"
+        groups: docker
+        append: true
+
+    - meta: reset_connection
+
+
+    - name: install dependency
+      apt:
+        name: "{{item}}"
+        state: present
+        update_cache: yes
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg
+        - software-properties-common
+
+    - name: add GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: add docker repository to apt
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+
+    - name: install docker
+      apt:
+        name: "{{item}}"
+        state: latest
+        update_cache: yes
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
+    - name: install python dependencies
+      become: true
+      apt:
+        update_cache: yes
+        state: latest
+        name: python3-pip
+
+    - name: install 'Docker SDK for Python'
+      pip:
+        name: docker
+
+    - name: Ensure docker deamon is running
+      service:
+        name: docker
+        state: started
+      become: true
+
+    - name: Ensure docker deamon is running
+      service:
+        name: docker
+        state: started
+      become: true
+
+    - name: Find my public ip
+      uri:
+       url: http://ifconfig.me/ip
+       return_content: yes
+      register: ip_response     
+
+    - name: create .env file
+      copy:
+        dest: ".env"
+        content: |
+          PORT=8080
+          HOST=0.0.0.0
+          NODE_ENV=development
+          HOST_URL=http://{{ ip_response.content }}:8080
+          COOKIE_ENCRYPT_PWD=superAwesomePasswordStringThatIsAtLeast32CharactersLong!
+          OKTA_ORG_URL=https:{{OKTAURL}}
+          OKTA_CLIENT_ID={{OKTAID}}
+          OKTA_CLIENT_SECRET={{OKTASECRET}}
+          PGHOST={{POSTGRESHOST}}
+          PGUSERNAME={{POSTGRESUSERNAME}}
+          PGDATABASE=postgres
+          PGPASSWORD={{POSTGRESPASSWORD}}
+          PGPORT=5432
+
+    - name: Log into private registry and force re-authorization
+      docker_login:
+        registry: idocontainer10.azurecr.io
+        username: "{{DOCKERUSERNAME}}"
+        password: "{{DOCKERPASSWORD}}"
+        reauthorize: yes
+
+    - name: Remove Stoped docker containers
+      shell: docker rm --force $(docker ps -a -q);
+      ignore_errors: yes
+
+
+    - name: Pull image
+      shell: docker pull idocontainer10.azurecr.io/idosheffernodeweight:185
+
+    - name: run image
+      shell: docker run -d --env-file .env -p 8080:8080 --name idoimage idocontainer10.azurecr.io/idosheffernodeweight:185
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FROM node:15-alpine 
+WORKDIR /app
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+EXPOSE 8080
+
+CMD [ "node", "src/index.js" ]
+
+
+
+
+FROM ubuntu:18.04 
+
+RUN apt-get update
+RUN npm install nodemon
+RUN npm install dotenv
+RUN npm install pm2 -g
+RUN curl -fsSL https://deb.nodesource.com/setup_15.x | sudo -E bash -
+RUN npm install cjs
+ENV
+COPY . .
+EXPOSE 8080
+
+CMD [ "node", "server.js" ]
+
+
+
+
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
+WORKDIR /src
+COPY ["DevopsAPI.csproj", "DevopsAPI/"]
+RUN dotnet restore "DevopsAPI/DevopsAPI.csproj"
+COPY . DevopsAPI/
+WORKDIR "/src/DevopsAPI"
+RUN dotnet build "DevopsAPI.csproj" -c Release -o /app
+
+FROM build AS publish
+RUN dotnet publish "DevopsAPI.csproj" -c Release -o /app
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app .
+ENTRYPOINT ["dotnet", "DevopsAPI.dll"]
