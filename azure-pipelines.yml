@@ -10,6 +10,7 @@ resources:
 
 variables:
   # Container registry service connection established during pipeline creation
+  azureSubscription: '$(azureSubscription)'
   dockerRegistryServiceConnection: '20d8b2be-ad2c-438e-8afb-d15a8b6d51cd'
   imageRepository: 'idosheffernodeweight'
   containerRegistry: 'idocontainer10.azurecr.io'
