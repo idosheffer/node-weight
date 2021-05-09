@@ -74,7 +74,7 @@ stages:
       pool:
        vmImage: 'Ubuntu-16.04'
       environment:
-       name:  prod
+       name:  Deploy
        resourceType: VirtualMachine
       strategy:
        runOnce:
