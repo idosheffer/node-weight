@@ -64,3 +64,26 @@ stages:
              args: '--extra-vars "OKTAURL=$(OKTAURL) OKTAID=$(OKTAID) OKTASECRET=$(OKTASECRET) POSTGRESHOST=$(POSTGRESHOST) POSTGRESPASSWORD=$(POSTGRESPASSWORD) POSTGRESUSERNAME=$(POSTGRESUSERNAME) DOCKERUSERNAME=$(DOCKERUSERNAME) DOCKERPASSWORD=$(DOCKERPASSWORD)"'
              failOnStdErr: false
 
+- stage: Production
+  displayName: Production
+  pool:
+    vmImage: ubuntu-latest
+  jobs:           
+    - deployment: ProductionVMDeploy
+      displayName: prodweb
+      pool:
+       vmImage: 'Ubuntu-16.04'
+      environment:
+       name:  prod
+       resourceType: VirtualMachine
+      strategy:
+       runOnce:
+        deploy:
+         steps:  
+         - task: Ansible@0
+           inputs:
+             ansibleInterface: 'agentMachine'
+             playbookPathOnAgentMachine: '/etc/ansible/myfirstplaybook.yml'
+             inventoriesAgentMachine: 'noInventory'
+             args: '--extra-vars "OKTAURL=$(OKTAURL) OKTAID=$(OKTAID) OKTASECRET=$(OKTASECRET) POSTGRESHOST=$(POSTGRESHOST) POSTGRESPASSWORD=$(POSTGRESPASSWORD) POSTGRESUSERNAME=$(POSTGRESUSERNAME) DOCKERUSERNAME=$(DOCKERUSERNAME) DOCKERPASSWORD=$(DOCKERPASSWORD)"'
+             failOnStdErr: false 
