@@ -83,7 +83,7 @@ stages:
          - task: Ansible@0
            inputs:
              ansibleInterface: 'agentMachine'
-             playbookPathOnAgentMachine: '/etc/ansible/myfirstplaybook.yml'
+             playbookPathOnAgentMachine: '/etc/ansible/myfirstplaybookprod.yml'
              inventoriesAgentMachine: 'noInventory'
              args: '--extra-vars "OKTAURL=$(OKTAURL) OKTAID=$(OKTAID) OKTASECRET=$(OKTASECRET) POSTGRESHOST=$(POSTGRESHOST) POSTGRESPASSWORD=$(POSTGRESPASSWORD) POSTGRESUSERNAME=$(POSTGRESUSERNAME) DOCKERUSERNAME=$(DOCKERUSERNAME) DOCKERPASSWORD=$(DOCKERPASSWORD)"'
              failOnStdErr: false 
